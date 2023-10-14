@@ -1,0 +1,10 @@
+window_size = 1000
+start_player_x_pos = -10
+start_player_y_pos = 250
+mouse_hide = True
+rays_count = 150
+world_size = 600
+mini_map_size = 300
+fish_eye_fix = True  # FIXME
+collision = False  # FIXME
+ray_step_angle = 0.01
