@@ -40,6 +40,7 @@ class Keys(Enum):
     KEY_RCTRL = pygame.K_RCTRL
     KEY_TAB = pygame.K_TAB
     KEY_ESC = pygame.K_ESCAPE
+    KEY_SPACE = pygame.K_SPACE
     KEY_DEL = pygame.K_DELETE
     KEY_BACKSPACE = pygame.K_BACKSPACE
     KEY_ENTER = pygame.K_KP_ENTER

@@ -1,6 +1,8 @@
 from math import sin, cos
 import random
 
+from vectors import Vec2
+
 clamp = lambda value, min_, max_: min(max(value, min_), max_)
 
 
@@ -62,8 +64,8 @@ def find_intersection(line1, line2):
         return None  # Intersection point is outside the line segments
 
 
-def cast_line(x, y, a, l):
-    return (
-        x + sin(a) * l,
-        y + cos(a) * l
+def cast_line(pos: Vec2, a: float, l: float) -> Vec2:
+    return Vec2(
+        pos.x + sin(a) * l,
+        pos.y + cos(a) * l
     )

@@ -3,6 +3,7 @@ from typing import List, Dict
 
 import utils
 from obj import Obj
+from vectors import Vec2
 
 
 @dataclasses.dataclass
@@ -15,11 +16,11 @@ class RayCastResult:
 
 
 def ray_cast(x_pos, y_pos, a, max_length: int, world: List[Obj]) -> List[RayCastResult]:
-    cast = utils.cast_line(x_pos, y_pos, a, max_length)
-    line = (x_pos, y_pos, cast[0], cast[1])
+    cast = utils.cast_line(Vec2(x_pos, y_pos), a, max_length)
+    line = (x_pos, y_pos, cast.x, cast.y)
     dists: Dict[float, Obj] = {}
     for obj in world:
-        pos = utils.find_intersection(line, (*obj.a, *obj.b))
+        pos = utils.find_intersection(line, (obj.a.x, obj.a.y, obj.b.x, obj.b.y))
         # pos = line[2], line[3]
         if not pos:
             continue
@@ -33,7 +34,7 @@ def ray_cast(x_pos, y_pos, a, max_length: int, world: List[Obj]) -> List[RayCast
     result = []
     for m in p:
         obj = dists[m]
-        x, y = utils.find_intersection(line, (*obj.a, *obj.b))
+        x, y = utils.find_intersection(line, (obj.a.x, obj.a.y, obj.b.x, obj.b.y))
         # x, y = cast
         result.append(RayCastResult(x, y, m, obj, True))
     return result

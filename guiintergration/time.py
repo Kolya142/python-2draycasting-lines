@@ -1,9 +1,15 @@
 import pygame.time
 clock = pygame.time.Clock()
+_fps = 0
 
 
-def set_fps(fps: float):
-    clock.tick(fps)
+def set_max_fps(fps: float):
+    global _fps
+    _fps = fps
+
+
+def update():
+    clock.tick(_fps)
 
 
 def get_fps() -> float:
