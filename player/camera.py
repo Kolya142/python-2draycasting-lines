@@ -3,7 +3,7 @@ import enum
 import math
 from typing import List
 from math import cos
-import threading
+from multiprocessing import Pool
 
 import raycast
 import settings
@@ -60,7 +60,7 @@ def for_render(trace, angle, self, x, x_step):
         d = max(0.0001, d)
         # fish eye fix FIXME
         if settings.fish_eye_fix:
-            d *= cos(angle-self.player.angle_x)
+            d *= cos(angle - self.player.angle_x)
         # d_shr = trace.obj.z_size
         # formula from http://ilinblog.ru/article.php?id_article=49
         d_shr = 50
@@ -73,11 +73,11 @@ def for_render(trace, angle, self, x, x_step):
         color[0] = max(0, min(color[0], 200))
         color[1] = max(0, min(color[1], 200))
         color[2] = max(0, min(color[2], 200))
-        angle_y = self.player.angle_y + self.player.pos.z / d
+        angle_y = self.player.angle_y + self.player.pos.z / d  # - 3 * d
         self.player.renderer.add_render_task(RenderTask(RenderTypes.BOX,
                                                         (
                                                             Vec2(x, settings.window_size // 2 - b_shr + angle_y - (
-                                                                        50 - d_shr)),
+                                                                    50 - d_shr)),
                                                             Vec2(round(x_step), b_shr * 2), color)))
 
         # DEBUG DRAW
@@ -88,7 +88,7 @@ def for_render(trace, angle, self, x, x_step):
         self.player.renderer.add_render_task(
             RenderTask(RenderTypes.LINE, (Vec2(100, 100), npos_1, (200, 250, 200))))
         self.player.renderer.add_render_task(
-           RenderTask(RenderTypes.CIRCLE, (npos_1, 2, trace.obj.color)))
+            RenderTask(RenderTypes.CIRCLE, (npos_1, 2, trace.obj.color)))
 
 
 class Camera:
@@ -105,13 +105,9 @@ class Camera:
             traces = raycast.ray_cast(self.player.pos.x, self.player.pos.y,
                                       angle, 400, self.player.game.world)[::-1]
             results.append(traces[-1])
-            if self.player.pos.z > 200:
+            if self.player.pos.z > 200 or 1:
                 for trace in traces:
-                    # p = threading.Thread(target=for_render, args=(trace, angle, self, x, x_step))
-                    # p.start()
-                    # p.join()
                     for_render(trace, angle, self, x, x_step)
-                    # break
             else:
                 for_render(traces[-1], angle, self, x, x_step)
             x += x_step

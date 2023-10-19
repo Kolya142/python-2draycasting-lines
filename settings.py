@@ -24,10 +24,11 @@ if world_generated:
         world.append(Obj(
             a,
             b,
-            color, randint(20, 50)))
+            color, randint(0, 20)))
 else:
     color_table = {}
     map_ = []
+    code = ''
 
     def add_line(a_, b_, color_):
         world.append(Obj(
@@ -45,8 +46,11 @@ else:
                 continue
             if line.startswith(';'):
                 continue
-            if line.startswith('@'):
+            if line.startswith('#'):
                 world_size = float(line[1:])
+                continue
+            if line.startswith('@'):
+                code += line[1:] + '\n'
                 continue
             if line == '':
                 continue
@@ -88,8 +92,9 @@ else:
                 if obj in world:
                     world.remove(obj)
                     world.remove(obj1)
+    exec(code)
 
 mini_map_size = 300
-fish_eye_fix = True  # FIXME
+fish_eye_fix = True
 collision = False  # FIXME
-ray_step_angle = 0.01
+ray_step_angle = 1/FOV

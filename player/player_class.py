@@ -28,7 +28,7 @@ class Player:
         self.mini_map = MiniMap(self)
         self.restart()
         self.jump_sound = sound.Sound.load_sound("assets/jump15.wav")
-        sound.Sound.set_volume(self.jump_sound, 0.5)
+        sound.Sound.set_volume(self.jump_sound, 0.0)
         self.font = self.renderer.load_font("assets/Pixeltype.ttf", 30)
         print(self.jump_sound, self.font)
 

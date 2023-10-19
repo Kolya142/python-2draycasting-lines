@@ -1,6 +1,22 @@
 ; world size in units
-; syntax @[size]
-@250
+; syntax #[size]
+#250
+
+
+; code
+; syntax @[code]
+@print("12323")
+; @world = []
+; @for _ in range(50):
+; @    a = Vec2(randint(0, world_size), randint(0, world_size))
+; @    b = Vec2(randint(0, world_size), randint(0, world_size))
+; @    color = randint(0, 255), randint(0, 255), randint(0, 255)
+; @    world.append(Obj(
+; @        a,
+; @        b,
+; @        color, randint(20, 50)))
+
+
 ; colortable
 ; syntax: ![symbol],[r] [g] [b]
 !1,50 10 250
@@ -8,12 +24,14 @@
 !t,20 50 10
 !3,0 159 200
 !0,100 100 100
+
+
 ; map
 ; just map
 11221230000000t
 t_______1_____1
 23___1_____1320
-0____2_____1_10
+0____0_____1_10
 0_p___2__1____0
 0_____________0
 123123132132131

@@ -9,4 +9,4 @@ class Obj:
     a: Vec2
     b: Vec2
     color: Tuple[int, int, int]
-    z_size: int
+    z_pos: int = 0
