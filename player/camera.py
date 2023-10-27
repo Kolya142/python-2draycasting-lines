@@ -7,7 +7,10 @@ from multiprocessing import Pool
 
 import raycast
 import settings
+from guiintergration import surface
 from guiintergration.screen import Screen
+from guiintergration.texture import Texture
+from line import Line
 from vectors import Vec2
 
 
@@ -16,6 +19,7 @@ class RenderTypes(enum.Enum):
     LINE = 1
     BOX = 2
     TEXT = 3
+    TEXTURE = 4
 
 
 @dataclasses.dataclass
@@ -49,10 +53,12 @@ class Renderer:
                     self._screen.draw_circle(*rt.args_)
                 case RenderTypes.TEXT:
                     self._screen.draw_text(*rt.args_)
+                case RenderTypes.TEXTURE:
+                    self._screen.blit(*rt.args_)
         self._screen.update()
 
 
-def for_render(trace, angle, self, x, x_step):
+def for_render(trace, angle, self, x, x_step, texture: Texture):
     npos = Vec2(trace.x_pos, trace.y_pos)
     if trace.hit:
         b = 100
@@ -66,6 +72,9 @@ def for_render(trace, angle, self, x, x_step):
         d_shr = 50
         b_shr = d_shr / d * b
         ds = d / 20
+        angle_y = self.player.angle_y + self.player.pos.z / d  # - 3 * d
+        if settings.window_size // 2 - b_shr + angle_y - (50 - d_shr) > settings.window_size:
+            return
         color = list(trace.obj.color)
         color[0] *= 1 / ds
         color[1] *= 1 / ds
@@ -73,12 +82,38 @@ def for_render(trace, angle, self, x, x_step):
         color[0] = max(0, min(color[0], 200))
         color[1] = max(0, min(color[1], 200))
         color[2] = max(0, min(color[2], 200))
-        angle_y = self.player.angle_y + self.player.pos.z / d  # - 3 * d
-        self.player.renderer.add_render_task(RenderTask(RenderTypes.BOX,
-                                                        (
-                                                            Vec2(x, settings.window_size // 2 - b_shr + angle_y - (
-                                                                    50 - d_shr)),
-                                                            Vec2(round(x_step), b_shr * 2), color)))
+        if not settings.texturing:
+            self.player.renderer.add_render_task(RenderTask(RenderTypes.BOX,
+                                                            (
+                                                                Vec2(x, settings.window_size // 2 - b_shr + angle_y - (
+                                                                        50 - d_shr)),
+                                                                Vec2(round(x_step), b_shr * 2), color)))
+        else:
+            tx = trace.x_pos % settings.map_scale.x
+            ty = trace.y_pos % settings.map_scale.y
+            i = 0
+            I = 1
+            if 0 < tx < settings.map_scale.x:
+                i = tx
+                I = settings.map_scale.x
+            if 0 < ty < settings.map_scale.y:
+                i = ty
+                I = settings.map_scale.y
+            h = texture.get_size().y
+            w = texture.get_size().x
+            kkk = round(w / settings.FOV)
+            s = Vec2(min(int(w*i/I), int(w - 3)), 0)
+            e = Vec2(kkk, h)
+            sur = texture.get_sub_surface(s, e)
+            sur = surface.resize(sur, Vec2(round(x_step), b_shr * 2))
+            surface.mult(sur, int(1 / ds * 255))
+            self.player.renderer.add_render_task(RenderTask(RenderTypes.TEXTURE,
+                                                            (
+                                                                sur,
+                                                                Vec2(x, settings.window_size // 2 - b_shr + angle_y - (
+                                                                        50 - d_shr)),
+                                                            )))
+            del sur
 
         # DEBUG DRAW
         # npos_1 = Vec2(npos[0] - self.player.pos[0] + 100, npos[1] - self.player.pos[1] + 100)
@@ -107,8 +142,11 @@ class Camera:
             results.append(traces[-1])
             if self.player.pos.z > 200 or 1:
                 for trace in traces:
-                    for_render(trace, angle, self, x, x_step)
+                    if trace.obj is not None:
+                        for_render(trace, angle, self, x, x_step, trace.obj.texture)
+                        continue
+                    for_render(trace, angle, self, x, x_step, None)
             else:
-                for_render(traces[-1], angle, self, x, x_step)
+                for_render(traces[-1], angle, self, x, x_step, traces[-1].obj.texture)
             x += x_step
         return results

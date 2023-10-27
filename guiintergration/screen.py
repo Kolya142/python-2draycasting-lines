@@ -2,6 +2,7 @@ from typing import Tuple, Dict
 
 import pygame
 
+from guiintergration.surface import Surf
 from vectors import Vec2, vec2tuple
 
 pygame.font.init()
@@ -33,6 +34,9 @@ class Screen:
 
     def draw_text(self, text: str, pos: Vec2, font: int, color: Tuple[int, int, int]):
         surf = self._fonts[font].render(text, False, color)
+        self._core_screen.blit(surf, vec2tuple(pos))
+
+    def blit(self, surf: Surf, pos: Vec2):
         self._core_screen.blit(surf, vec2tuple(pos))
 
     @staticmethod

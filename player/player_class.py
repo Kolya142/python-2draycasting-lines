@@ -3,6 +3,7 @@ import random
 import guiintergration.time
 import raycast
 import settings
+from guiintergration.texture import Texture
 from player.camera import Renderer, RenderTypes, RenderTask, Camera
 from player.mini_map import MiniMap
 from guiintergration import keyboard
@@ -27,8 +28,9 @@ class Player:
         self.camera = Camera(self)
         self.mini_map = MiniMap(self)
         self.restart()
+        self.test_texture: Texture = Texture("assets/test.bmp")
         self.jump_sound = sound.Sound.load_sound("assets/jump15.wav")
-        sound.Sound.set_volume(self.jump_sound, 0.0)
+        sound.Sound.set_volume(self.jump_sound, 0.1)
         self.font = self.renderer.load_font("assets/Pixeltype.ttf", 30)
         print(self.jump_sound, self.font)
 
@@ -38,8 +40,31 @@ class Player:
         self.angle_x = 0
         self.angle_y = 0
 
-    def update(self):
+    def is_mouse_bound(self):
+        if keyboard.get_pressed(Keys.KEY_LEFT) or mouse.get_position()[0] < settings.window_size // 2:
+            self.angle_x -= self.rotate_speed
+        if keyboard.get_pressed(Keys.KEY_RIGHT) or mouse.get_position()[0] > settings.window_size // 2:
+            self.angle_x += self.rotate_speed
+        if settings.vertical_rotating:
+            if keyboard.get_pressed(Keys.KEY_UP) or mouse.get_position()[1] < settings.window_size // 2:
+                self.angle_y -= self.rotate_speed * 200
+            if keyboard.get_pressed(Keys.KEY_DOWN) or mouse.get_position()[1] > settings.window_size // 2:
+                self.angle_y += self.rotate_speed * 200
 
+        mouse.set_position((settings.window_size//2, settings.window_size//2))
+
+    def is_mouse_not_bound(self):
+        self.angle_x = -(mouse.get_position()[0] - settings.window_size / 2) / settings.window_size * 6.28
+        self.angle_y = (settings.window_size - mouse.get_position()[1]) - settings.window_size / 2
+        if mouse.get_position()[0] < 50:
+            mouse.set_position((settings.window_size - 50, mouse.get_position()[1]))
+        if mouse.get_position()[0] > settings.window_size - 50:
+            mouse.set_position((50, mouse.get_position()[1]))
+
+    def update(self):
+        if keyboard.get_pressed(Keys.KEY_LCTRL):
+            print("crouch")
+            self.pos.z -= 3000
         _args = Vec2(0, 0), Vec2(settings.window_size, settings.window_size//2+self.angle_y), (0, 0, 255)
         self.renderer.add_render_task(RenderTask(RenderTypes.BOX, _args))
         _args = Vec2(0, settings.window_size//2+self.angle_y), \
@@ -55,6 +80,10 @@ class Player:
         self.mini_map.update(r)
         self.renderer.add_render_task(
             RenderTask(RenderTypes.TEXT, (f'fps: {round(guiintergration.time.get_fps(), 2)}', (0, 0), self.font, (0, 255, 0)))
+            # text: str, pos: Vec2, font: int, color: Tuple[int, int, int]
+        )
+        self.renderer.add_render_task(
+            RenderTask(RenderTypes.TEXT, (f'pos: {self.pos.x, self.pos.y, self.pos.z}', (0, 50), self.font, (0, 255, 0)))
             # text: str, pos: Vec2, font: int, color: Tuple[int, int, int]
         )
         self.renderer.update()
@@ -82,16 +111,10 @@ class Player:
         if keyboard.get_pressed(Keys.KEY_D):
             self.pos.y += sin(self.angle_x) * self.speed * run_multiplier
             self.pos.x -= cos(self.angle_x) * self.speed * run_multiplier
-
-        if keyboard.get_pressed(Keys.KEY_LEFT) or mouse.get_position()[0] < settings.window_size//2:
-            self.angle_x -= self.rotate_speed
-        if keyboard.get_pressed(Keys.KEY_RIGHT) or mouse.get_position()[0] > settings.window_size//2:
-            self.angle_x += self.rotate_speed
-        if settings.vertical_rotating:
-            if keyboard.get_pressed(Keys.KEY_UP) or mouse.get_position()[1] < settings.window_size//2:
-                self.angle_y -= self.rotate_speed*200
-            if keyboard.get_pressed(Keys.KEY_DOWN) or mouse.get_position()[1] > settings.window_size//2:
-                self.angle_y += self.rotate_speed*200
+        if settings.mouse_bound:
+            self.is_mouse_bound()
+        else:
+            self.is_mouse_not_bound()
         if keyboard.get_pressed(Keys.KEY_ESC):
             quit()
         if keyboard.get_pressed(Keys.KEY_SPACE) and self.pos.z <= 2:
@@ -106,9 +129,14 @@ class Player:
             if keyboard.get_pressed(Keys.KEY_E):
                 self.pos.z += self.speed * run_multiplier * 200
         self.angle_y = utils.clamp(self.angle_y, -480, 480)
-        mouse.set_position((settings.window_size//2, settings.window_size//2))
         # gravity
         if not settings.no_clip:
             self.z_pos_vel += settings.gravity
             self.pos.z += self.z_pos_vel
             self.pos.z = max(0, self.pos.z)
+            if not keyboard.get_pressed(Keys.KEY_LCTRL):
+                if self.pos.z == 0:
+                    self.z_pos_vel = 0
+
+        # if keyboard.get_pressed(Keys.KEY_LCTRL):
+        #     self.pos.z += 3000

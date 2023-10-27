@@ -32,11 +32,20 @@ class Vec2:
 
     def __truediv__(self, other):
         if isinstance(other, int):
-            self.x -= other
-            self.y -= other
+            self.x /= other
+            self.y /= other
         if isinstance(other, Vec2):
-            self.x -= other.x
-            self.y -= other.y
+            self.x /= other.x
+            self.y /= other.y
+        return self
+
+    def __floordiv__(self, other):
+        if isinstance(other, int):
+            self.x //= other
+            self.y //= other
+        if isinstance(other, Vec2):
+            self.x //= other.x
+            self.y //= other.y
         return self
 
     def __mul__(self, other):
@@ -47,6 +56,12 @@ class Vec2:
             self.x *= other.x
             self.y *= other.y
         return self
+
+    def __eq__(self, other):
+        return self.x == other.x and self.y == other.y
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def copy(self):
         return Vec2(self.x, self.y)
