@@ -91,19 +91,18 @@ def for_render(trace, angle, self, x, x_step, texture: Texture):
         else:
             tx = trace.x_pos % settings.map_scale.x
             ty = trace.y_pos % settings.map_scale.y
-            i = 0
-            I = 1
-            if 0 < tx < settings.map_scale.x:
-                i = tx
-                I = settings.map_scale.x
-            if 0 < ty < settings.map_scale.y:
-                i = ty
-                I = settings.map_scale.y
             h = texture.get_size().y
             w = texture.get_size().x
             kkk = round(w / settings.FOV)
-            s = Vec2(min(int(w*i/I), int(w - 3)), 0)
+            side = 0
+            if ty == 0:
+                side = 1
+            offset = tx/settings.map_scale.x if side else ty/settings.map_scale.y
+            offset = min(int(w*offset), int(w - 3))
+            s = Vec2(offset, 0)
             e = Vec2(kkk, h)
+            e.x = min(e.x, w-s.x)
+            print(s.x, s.y, e.x, e.y)
             sur = texture.get_sub_surface(s, e)
             sur = surface.resize(sur, Vec2(round(x_step), b_shr * 2))
             surface.mult(sur, int(1 / ds * 255))
